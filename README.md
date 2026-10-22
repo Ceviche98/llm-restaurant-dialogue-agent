@@ -23,7 +23,7 @@ User Input ───► LLM Prompt Grounding ───► JSON Tool Call ──�
 
 ### 1.1 Domain Ontology & Relational Database
 The agent operates over structured JSON schemas containing restaurant profiles, menu items, allergen information, and transactional order records:
-- **`restaurants.json`**: Profiles indexed by restaurant ID (`r001`–`r005`), name, cuisine (`chinese`, `italian`, `indian`, `japanese`, `vegetarian`, `british`), geographical zone (`centre`, `north`, `south`, `east`, `west`, `riverside`), and price tier (`cheap`, `moderate`, `expensive`).
+- **`restaurants.json`**: Profiles indexed by restaurant ID (`r001`-`r005`), name, cuisine (`chinese`, `italian`, `indian`, `japanese`, `vegetarian`, `british`), geographical zone (`centre`, `north`, `south`, `east`, `west`, `riverside`), and price tier (`cheap`, `moderate`, `expensive`).
 - **`menus.json`**: Dish catalogues keyed by restaurant ID with dish codes, names, prices, and allergen labels.
 - **`orders.json`**: Transactional booking store tracking customer name, date, time, party size, ordered dish IDs, and active lifecycle status (`confirmed`, `cancelled`).
 
