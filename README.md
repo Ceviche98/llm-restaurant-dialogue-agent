@@ -63,8 +63,11 @@ To eliminate these failure modes, we introduce a **Dialogue Manager (DM)** prepr
 
 <div align="center">
   <img src="docs/assets/dm_clarification_tradeoffs.png" width="95%" alt="Dialogue Manager Confidence Decision Boundaries" />
-  <p><em><strong>Figure 1:</strong> Continuous slot grounding spectrum mapping confidence scores $c \in [0, 1]$ across calibrated decision thresholds ($\theta_1 = 0.72$, $\theta_2 = 0.84$, $\theta_3 = 0.94$) to communicative repair actions.</em></p>
 </div>
+
+<br/>
+
+**Figure 1:** Continuous slot grounding spectrum mapping confidence scores $c \in [0, 1]$ across calibrated decision thresholds $(\theta_1 = 0.72, \, \theta_2 = 0.84, \, \theta_3 = 0.94)$ to communicative repair actions.
 
 ### 3.1 Multi-Tier Slot Normalisation (`normalize_slot_verbose`)
 Every user utterance is parsed against the domain ontology (`area`, `food`, `pricerange`) across a 5-tier classification hierarchy:
