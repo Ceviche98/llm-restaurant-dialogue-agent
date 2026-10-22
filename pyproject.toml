@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "restaurant-agent"
+version = "1.0.0"
+description = "Task-Oriented LLM Restaurant Dialogue Agent with Structured Tool Calling, Dense RAG Retrieval, and LoRA Fine-Tuning"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Oscar Moreno"}
+]
+dependencies = [
+    "requests>=2.31.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+ml = [
+    "torch>=2.2.0",
+    "transformers>=4.45.0",
+    "datasets>=2.18.0",
+    "trl>=0.12.0",
+    "peft>=0.13.0",
+    "sacrebleu>=2.4.0",
+    "matplotlib>=3.8.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

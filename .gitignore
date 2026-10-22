@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+dist/
+build/
+.venv/
+venv/
+.env
+*.ipynb
+sft_output/
+lora_output/
+sft_unquantized_output/
+merged_model/

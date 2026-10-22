@@ -1,0 +1,60 @@
+[
+  {
+    "scenario_id": "t1_booking_with_food_preorder",
+    "description": "Booking + menu preorder, then end conversation triggers persistence.",
+    "turns": [
+      "I want a cheap Chinese restaurant in the centre.",
+      "Recommend one option.",
+      "Book it for Wednesday 17:00 for 2 people under the name Zicen.",
+      "I want to preorder 2x Fried Rice (c04) and 1x Spring Rolls (c05).",
+      "Yes, place the booking and the food order.",
+      "Yes, end the conversation."
+    ],
+    "checks": [
+      "has_order_after_end",
+      "final_terminated"
+    ]
+  },
+  {
+    "scenario_id": "t2_offtopic_guidance",
+    "description": "Off-topic should list allowed ranges and guide back to ordering.",
+    "turns": [
+      "Do you like football?"
+    ],
+    "checks": [
+      "offtopic_lists_ranges"
+    ]
+  },
+  {
+    "scenario_id": "t3_query_update_cancel",
+    "description": "Create order then query, update, query, cancel, query canceled.",
+    "turns": [
+      "I want a moderate Japanese restaurant in the east.",
+      "Recommend one.",
+      "Book it for Friday 19:00 for 1 person under the name Matt.",
+      "Preorder 1x Gyoza (j04).",
+      "Yes, place the booking and the food order.",
+      "Yes, end the conversation.",
+      "Check my order using the order number you just gave me.",
+      "Update that order: change to 2x Gyoza (j04) and add 1x Edamame (j05).",
+      "Check that order again.",
+      "Cancel that order.",
+      "Check that order again."
+    ],
+    "checks": [
+      "query_found",
+      "update_applied",
+      "canceled_status"
+    ]
+  },
+  {
+    "scenario_id": "t4_nonexistent_order_id",
+    "description": "Nonexistent order id should return not found.",
+    "turns": [
+      "Check order ORD-000000."
+    ],
+    "checks": [
+      "not_found_message"
+    ]
+  }
+]

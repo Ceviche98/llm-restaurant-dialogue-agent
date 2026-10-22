@@ -1,0 +1,164 @@
+{
+  "r001": [
+    {
+      "item_id": "c01",
+      "name": "Beef Chow Mein",
+      "price": 9.5
+    },
+    {
+      "item_id": "c02",
+      "name": "Kung Pao Chicken",
+      "price": 10.0
+    },
+    {
+      "item_id": "c03",
+      "name": "Mapo Tofu",
+      "price": 8.5
+    },
+    {
+      "item_id": "c04",
+      "name": "Fried Rice",
+      "price": 7.5
+    },
+    {
+      "item_id": "c05",
+      "name": "Spring Rolls",
+      "price": 5.0
+    }
+  ],
+  "r002": [
+    {
+      "item_id": "i01",
+      "name": "Margherita Pizza",
+      "price": 11.0
+    },
+    {
+      "item_id": "i02",
+      "name": "Spaghetti Carbonara",
+      "price": 12.0
+    },
+    {
+      "item_id": "i03",
+      "name": "Lasagna",
+      "price": 13.5
+    },
+    {
+      "item_id": "i04",
+      "name": "Bruschetta",
+      "price": 6.0
+    },
+    {
+      "item_id": "i05",
+      "name": "Tiramisu",
+      "price": 6.5
+    }
+  ],
+  "r003": [
+    {
+      "item_id": "j01",
+      "name": "Salmon Sushi (8 pcs)",
+      "price": 12.0
+    },
+    {
+      "item_id": "j02",
+      "name": "Chicken Ramen",
+      "price": 11.5
+    },
+    {
+      "item_id": "j03",
+      "name": "Tempura Udon",
+      "price": 12.5
+    },
+    {
+      "item_id": "j04",
+      "name": "Gyoza",
+      "price": 6.0
+    },
+    {
+      "item_id": "j05",
+      "name": "Edamame",
+      "price": 4.5
+    }
+  ],
+  "r004": [
+    {
+      "item_id": "n01",
+      "name": "Chicken Tikka Masala",
+      "price": 12.5
+    },
+    {
+      "item_id": "n02",
+      "name": "Lamb Rogan Josh",
+      "price": 14.0
+    },
+    {
+      "item_id": "n03",
+      "name": "Chana Masala",
+      "price": 10.0
+    },
+    {
+      "item_id": "n04",
+      "name": "Garlic Naan",
+      "price": 3.5
+    },
+    {
+      "item_id": "n05",
+      "name": "Mango Lassi",
+      "price": 4.0
+    }
+  ],
+  "r005": [
+    {
+      "item_id": "v01",
+      "name": "Veggie Bowl",
+      "price": 10.0
+    },
+    {
+      "item_id": "v02",
+      "name": "Falafel Wrap",
+      "price": 9.0
+    },
+    {
+      "item_id": "v03",
+      "name": "Grilled Halloumi Salad",
+      "price": 11.0
+    },
+    {
+      "item_id": "v04",
+      "name": "Hummus & Pita",
+      "price": 6.0
+    },
+    {
+      "item_id": "v05",
+      "name": "Fruit Smoothie",
+      "price": 5.5
+    }
+  ],
+  "r006": [
+    {
+      "item_id": "b01",
+      "name": "Fish and Chips",
+      "price": 13.0
+    },
+    {
+      "item_id": "b02",
+      "name": "Beef Burger",
+      "price": 12.0
+    },
+    {
+      "item_id": "b03",
+      "name": "Shepherd's Pie",
+      "price": 13.5
+    },
+    {
+      "item_id": "b04",
+      "name": "Sticky Toffee Pudding",
+      "price": 6.0
+    },
+    {
+      "item_id": "b05",
+      "name": "English Breakfast Tea",
+      "price": 3.0
+    }
+  ]
+}

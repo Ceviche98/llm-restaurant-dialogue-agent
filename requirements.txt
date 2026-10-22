@@ -1,0 +1,5 @@
+requests>=2.31.0
+pytest>=8.0.0
+sacrebleu>=2.4.0
+matplotlib>=3.8.0
+numpy>=1.26.0

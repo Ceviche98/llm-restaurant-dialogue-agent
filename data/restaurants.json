@@ -1,0 +1,56 @@
+[
+  {
+    "id": "r001",
+    "name": "Centre Noodle House",
+    "area": "centre",
+    "pricerange": "cheap",
+    "cuisine": "chinese",
+    "address": "11 King St",
+    "phone": "01223 100001"
+  },
+  {
+    "id": "r002",
+    "name": "Centre La Pasta",
+    "area": "centre",
+    "pricerange": "moderate",
+    "cuisine": "italian",
+    "address": "4 Market Sq",
+    "phone": "01223 100002"
+  },
+  {
+    "id": "r003",
+    "name": "East Sakura",
+    "area": "east",
+    "pricerange": "moderate",
+    "cuisine": "japanese",
+    "address": "9 Airport Way",
+    "phone": "01223 100022"
+  },
+  {
+    "id": "r004",
+    "name": "North Spice Garden",
+    "area": "north",
+    "pricerange": "cheap",
+    "cuisine": "indian",
+    "address": "14 Chesterton Rd",
+    "phone": "01223 100009"
+  },
+  {
+    "id": "r005",
+    "name": "Riverside Veg Bowl",
+    "area": "riverside",
+    "pricerange": "expensive",
+    "cuisine": "vegetarian",
+    "address": "9 Riverside Walk",
+    "phone": "01223 100035"
+  },
+  {
+    "id": "r006",
+    "name": "West Oak & Ale",
+    "area": "west",
+    "pricerange": "cheap",
+    "cuisine": "british",
+    "address": "8 Barton Rd",
+    "phone": "01223 100030"
+  }
+]
