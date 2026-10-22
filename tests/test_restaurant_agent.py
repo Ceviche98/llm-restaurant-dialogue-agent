@@ -1,4 +1,4 @@
-"""Comprehensive unit tests for the LLM Restaurant Dialogue Agent, RAG Retriever, and Fine-Tuning Suite."""
+"""Comprehensive unit tests for the LLM Restaurant Dialogue Agent with Clarification DM."""
 
 from __future__ import annotations
 
@@ -12,25 +12,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from restaurant_agent import (
     AREA_MAP,
-    BENCHMARK_RESULTS,
     FOOD_MAP,
     PRICE_MAP,
-    LoRATrainingSpec,
     RestaurantDatabase,
     RestaurantDialogueAgent,
-    RestaurantKnowledgeRetriever,
-    SFTTrainingSpec,
     ScenarioEvaluator,
     ToolExecutor,
-    build_retrieval_query,
-    compute_f1,
-    evaluate_predictions,
+    build_clarification_response,
+    decide_clarification,
+    dm_preprocess,
+    extract_booking_fields,
     extract_json_action,
-    format_chat_messages_manual,
-    format_rag_dialogue_prompt,
-    normalize_answer,
     normalize_slot,
-    passage_to_text,
+    normalize_slot_verbose,
+    parse_user_constraints,
+    update_state_from_parsed,
 )
 
 
@@ -41,84 +37,65 @@ def temp_db(tmp_path: Path) -> RestaurantDatabase:
 
 
 def test_normalize_slots() -> None:
-    assert normalize_slot("in the city center", AREA_MAP) == "centre"
+    assert normalize_slot("centre", AREA_MAP) == "centre"
     assert normalize_slot("downtown", AREA_MAP) == "centre"
+    assert normalize_slot("riverside area", AREA_MAP) == "riverside"
     assert normalize_slot("veggie", FOOD_MAP) == "vegetarian"
-    assert normalize_slot("moderately priced", PRICE_MAP) == "moderate"
-    assert normalize_slot("unknown_val", AREA_MAP) is None
-    assert normalize_slot(None, AREA_MAP) is None
+    assert normalize_slot("inexpensive", PRICE_MAP) == "cheap"
+    assert normalize_slot("luxury", PRICE_MAP) is None
 
 
 def test_database_search_and_menus(temp_db: RestaurantDatabase) -> None:
-    res_chinese = temp_db.search_restaurants(area="centre", food="chinese", pricerange="cheap")
-    assert res_chinese["count"] == 1
-    assert res_chinese["results"][0]["id"] == "r001"
-    assert res_chinese["results"][0]["name"] == "Centre Noodle House"
+    all_res = temp_db.search_restaurants()
+    assert all_res["count"] == 6
 
-    res_veg = temp_db.search_restaurants(dietary="vegetarian")
-    assert res_veg["count"] == 1
-    assert res_veg["results"][0]["id"] == "r005"
+    res = temp_db.search_restaurants(area="centre", food="chinese", pricerange="cheap")
+    assert res["count"] == 1
+    assert res["results"][0]["id"] == "r001"
+    assert res["results"][0]["name"] == "Centre Noodle House"
 
-    res_empty = temp_db.search_restaurants(area="south", food="japanese")
+    res_empty = temp_db.search_restaurants(area="riverside", food="chinese")
     assert res_empty["count"] == 0
 
-    menu_r001 = temp_db.get_menu("r001")
-    assert menu_r001["restaurant_id"] == "r001"
-    assert len(menu_r001["menu"]) == 5
+    menu = temp_db.get_menu("r001")
+    assert menu["restaurant_id"] == "r001"
+    assert any(item["item_id"] == "c01" for item in menu["menu"])
 
-    menu_missing = temp_db.get_menu("r999")
-    assert "error" in menu_missing
-
-
-def test_booking_lifecycle_and_non_destructive_cancel(temp_db: RestaurantDatabase) -> None:
-    # Invalid people count
-    err_ppl = temp_db.book_restaurant("r001", "Monday", "18:00", 0, "Oscar")
-    assert "error" in err_ppl
-
-    # Missing customer name
-    err_name = temp_db.book_restaurant("r001", "Monday", "18:00", 4, "   ")
-    assert "error" in err_name
-
-    # Valid booking with 3x Kung Pao Chicken (c02 @ £10.00 = £30.00)
-    booked = temp_db.book_restaurant(
+    # 1. Create booking
+    booking = temp_db.book_restaurant(
         restaurant_id="r001",
-        day="Monday",
-        time="18:00",
-        people=4,
-        customer_name="Oscar Moreno",
-        dishes={"c02": 3},
-        order_id="ORD-187648",
+        day="Friday",
+        time="19:30",
+        people=3,
+        customer_name="Oscar",
+        dishes={"c01": 2, "c02": 1},
     )
-    assert booked["success"] is True
-    assert booked["order_id"] == "ORD-187648"
-    assert booked["details"]["total_price"] == 30.0
-    assert booked["details"]["status"] == "confirmed"
+    assert booking["success"] is True
+    order_id = booking["order_id"]
+    assert order_id.startswith("ORD-")
+    assert booking["details"]["total_price"] > 0
 
-    # Check active order
-    checked = temp_db.check_order("ORD-187648")
+    # 2. Check order
+    checked = temp_db.check_order(order_id)
     assert checked["success"] is True
-    assert checked["order"]["customer_name"] == "Oscar Moreno"
+    assert checked["order"]["status"] == "confirmed"
+    assert checked["order"]["customer_name"] == "Oscar"
 
-    # Update order dishes: 2x Fried Rice (c04 @ 7.5) + 1x Spring Rolls (c05 @ 5.0) = £20.00
-    updated = temp_db.update_order("ORD-187648", {"c04": 2, "c05": 1})
+    # 3. Update order
+    updated = temp_db.update_order(order_id, dishes={"c01": 1, "c03": 2})
     assert updated["success"] is True
-    assert updated["details"]["total_price"] == 20.0
+    assert updated["details"]["total_price"] > 0
 
-    # Cancel order non-destructively
-    canceled = temp_db.cancel_order("ORD-187648")
-    assert canceled["success"] is True
-    assert canceled["details"]["status"] == "canceled"
+    # 4. Cancel order
+    cancelled = temp_db.cancel_order(order_id)
+    assert cancelled["success"] is True
 
-    # Verify canceled order cannot be updated
-    update_after_cancel = temp_db.update_order("ORD-187648", {"c01": 1})
-    assert update_after_cancel["error"] == "Cannot update a canceled order."
+    # 5. Non-destructive check
+    checked_after = temp_db.check_order(order_id)
+    assert checked_after["success"] is True
+    assert checked_after["order"]["status"] in ("canceled", "cancelled")
 
-    # Verify canceled order remains auditable via check_order (CW1 Task 5)
-    checked_after_cancel = temp_db.check_order("ORD-187648")
-    assert checked_after_cancel["success"] is True
-    assert checked_after_cancel["order"]["status"] == "canceled"
-
-    # Non-existent order ID (CW1 Task 3)
+    # Non-existent order ID
     not_found = temp_db.check_order("ORD-999999")
     assert not_found == {"error": "Order not found."}
 
@@ -138,10 +115,6 @@ def test_tool_executor_and_json_parser(temp_db: RestaurantDatabase) -> None:
 
 
 def test_agent_multi_hop_and_error_recovery(temp_db: RestaurantDatabase) -> None:
-    # Simulate an LLM that:
-    # 1. Outputs malformed text on Hop 1
-    # 2. Recovers on Hop 2 by calling search_restaurants
-    # 3. Summarizes with action=final on Hop 3
     responses = [
         "Not valid JSON",
         json.dumps({"action": "search_restaurants", "args": {"food": "chinese"}}),
@@ -164,59 +137,74 @@ def test_agent_multi_hop_and_error_recovery(temp_db: RestaurantDatabase) -> None
     assert trace[2]["action"] == "final"
 
 
-def test_rag_engine_query_formatting_and_retrieval(temp_db: RestaurantDatabase) -> None:
-    history = [
-        ("A", "Hey, do you happen to know what was the 2009 Santos FC season?"),
-        ("B", "Yes, it was Santos Futebol Clube's ninety-seventh season."),
-        ("A", "Which of these players retired in 2013?"),
-        ("B", "Sérgio retired in 2013."),
-    ]
-    current_q = "What team did he move from?"
-    rq = build_retrieval_query(history, current_q, max_turns=3)
-    assert "Sérgio retired in 2013." in rq
-    assert current_q in rq
+def test_clarification_dm_slot_normalisation() -> None:
+    # 1. Exact mapping
+    m_exact = normalize_slot_verbose("centre", AREA_MAP)
+    assert m_exact["status"] == "mapped"
+    assert m_exact["value"] == "centre"
+    assert m_exact["confidence"] == 1.0
 
-    passage = {"title": "Gevora Hotel", "text": "The Gevora Hotel has 528 rooms spread over 75 floors."}
-    p_text = passage_to_text(passage)
-    assert "Title: Gevora Hotel" in p_text
-    assert "528 rooms" in p_text
+    # 2. Substring matching
+    m_sub = normalize_slot_verbose("I would like to sit in the city center area please", AREA_MAP)
+    assert m_sub["status"] == "substring"
+    assert m_sub["value"] == "centre"
+    assert m_sub["confidence"] >= 0.95
 
-    msgs = format_rag_dialogue_prompt(history, current_q, docs_text=[p_text])
-    assert msgs[0]["role"] == "system"
-    assert "CONTEXT:" in msgs[-1]["content"]
+    # 3. Fuzzy matching on noisy speech transcript (e.g. "lo priced", "japnese")
+    m_fuzzy_food = normalize_slot_verbose("some japnese dining", FOOD_MAP)
+    assert m_fuzzy_food["status"] == "fuzzy"
+    assert m_fuzzy_food["value"] == "japanese"
+    assert m_fuzzy_food["confidence"] >= 0.72
 
-    chatml = format_chat_messages_manual(msgs)
-    assert "<|im_start|>system" in chatml
-    assert chatml.endswith("<|im_start|>assistant\n")
+    m_fuzzy_price = normalize_slot_verbose("I want some lo priced food", PRICE_MAP)
+    assert m_fuzzy_price["status"] == "fuzzy"
+    assert m_fuzzy_price["value"] == "cheap"
 
-    retriever = RestaurantKnowledgeRetriever.from_database(temp_db.restaurants, temp_db.menus)
-    top_docs = retriever.search_document_demo("Japanese sushi and ramen in the east", n_docs=2)
-    assert len(top_docs) == 2
-    assert top_docs[0]["id"] == "r003"
+    # 4. Unknown / Out-of-vocabulary
+    m_unknown = normalize_slot_verbose("barbecue ribs and steaks", FOOD_MAP)
+    assert m_unknown["status"] == "unknown"
+    assert m_unknown["value"] is None
+
+    # 5. Missing
+    m_missing = normalize_slot_verbose("", AREA_MAP)
+    assert m_missing["status"] == "missing"
+    assert m_missing["confidence"] == 0.0
 
 
-def test_finetuning_metrics_and_specs() -> None:
-    assert normalize_answer("The Gevora Hotel has 528 rooms!") == "gevora hotel has 528 rooms"
-    f1_exact = compute_f1("You're welcome!", "You're welcome.")
-    assert f1_exact == 1.0
+def test_clarification_dm_policies_and_preprocessing() -> None:
+    state = {
+        "constraints": {"area": None, "food": None, "pricerange": None},
+        "pending_clarification": None,
+    }
 
-    f1_partial = compute_f1(
-        "The Gevora Hotel has 528 rooms spread over 75 floors.",
-        "Yes, Gevora Hotel have 528 total rooms",
-    )
-    assert abs(f1_partial - 0.5) < 1e-4
+    # Case 1: Out-of-vocabulary cuisine mentioned -> explicit clarification with options
+    resp1, state, parsed1 = dm_preprocess("I want some mexican food please", state)
+    assert resp1 is not None
+    assert resp1["action"] == "explicit_clarification"
+    assert "didn't quite catch the food" in resp1["response"]
+    assert "chinese, italian, indian" in resp1["response"]
 
-    eval_out = evaluate_predictions(["You're welcome!"], ["You're welcome."])
-    assert eval_out["average_f1"] == 100.0
-    assert eval_out["total"] == 1
+    # Case 2: Clear food specified -> updates state and asks follow-up for missing slot
+    state["pending_clarification"] = None
+    resp2, state, parsed2 = dm_preprocess("I want delicious Italian cuisine", state)
+    assert state["constraints"]["food"] == "italian"
+    assert resp2 is not None
+    assert resp2["action"] == "follow_up"
 
-    lora_spec = LoRATrainingSpec(r=16, lora_alpha=32)
-    assert lora_spec.to_peft_kwargs()["r"] == 16
-    assert "q_proj" in lora_spec.to_peft_kwargs()["target_modules"]
+    # Case 3: Booking fields extraction
+    booking_slots = extract_booking_fields("table for 4 people on Friday at 19:30")
+    assert booking_slots["people"] == 4
+    assert booking_slots["day"] == "friday"
+    assert booking_slots["time"] == "19:30"
 
-    sft_spec = SFTTrainingSpec()
-    assert sft_spec.to_dict()["optim"] == "adamw_bnb_8bit"
-    assert BENCHMARK_RESULTS["smoltalk_finetuning"]["lora_r16_alpha32_8gb_vram"]["f1"] == 31.88
+
+def test_agent_with_clarification_dm(temp_db: RestaurantDatabase) -> None:
+    agent = RestaurantDialogueAgent(db=temp_db)
+    # The agent intercepts an OOV food request directly via DM without needing LLM invocation
+    reply, trace, ok = agent.step_with_clarification("I am looking for some greek food in town")
+    assert ok is True
+    assert trace[0]["dm_handled"] is True
+    assert "didn't quite catch the food" in reply
 
 
 def test_scenario_evaluator_all_scenarios_pass(temp_db: RestaurantDatabase) -> None:

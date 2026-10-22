@@ -8,6 +8,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import requests
 
+from .clarification_dm import dm_preprocess
 from .database import RestaurantDatabase
 from .tools import TOOL_ACTIONS, ToolExecutor, extract_json_action
 
@@ -145,11 +146,19 @@ class RestaurantDialogueAgent:
         self.max_hops = max_hops
         self.messages: List[Dict[str, str]] = [{"role": "system", "content": self.system_prompt}]
         self.restaurant_chosen: bool = False
+        self.dm_state: Dict[str, Any] = {
+            "constraints": {"area": None, "food": None, "pricerange": None},
+            "pending_clarification": None,
+        }
 
     def reset(self) -> None:
-        """Reset conversation state and restaurant_chosen guardrail flag."""
+        """Reset conversation state, restaurant_chosen guardrail flag, and DM state."""
         self.messages = [{"role": "system", "content": self.system_prompt}]
         self.restaurant_chosen = False
+        self.dm_state = {
+            "constraints": {"area": None, "food": None, "pricerange": None},
+            "pending_clarification": None,
+        }
 
     def _build_dynamic_instruction(self, action: str, result: Dict[str, Any]) -> str:
         """Construct dynamic state-machine guardrail instructions injected alongside tool results."""
@@ -256,3 +265,34 @@ class RestaurantDialogueAgent:
 
         trace.append({"hop": hops_limit, "error": "loop_limit"})
         return "[Agent loop limit reached]", trace, False
+
+    def step_with_clarification(
+        self,
+        user_text: str,
+        low_conf: float = 0.84,
+        medium_conf: float = 0.94,
+    ) -> Tuple[str, List[Dict[str, Any]], bool]:
+        """Process user utterance through Lab 9 Clarification DM before LLM invocation."""
+        dm_resp, self.dm_state, parsed = dm_preprocess(
+            user_text,
+            self.dm_state,
+            low_conf=low_conf,
+            medium_conf=medium_conf,
+        )
+
+        if dm_resp is not None:
+            resp_text = str(dm_resp.get("response", ""))
+            self.messages.append({"role": "user", "content": user_text})
+            self.messages.append({"role": "assistant", "content": json.dumps(dm_resp)})
+            trace = [
+                {
+                    "hop": 1,
+                    "latency_ms": 0,
+                    "action": dm_resp.get("action"),
+                    "dm_handled": True,
+                    "dm_response": dm_resp,
+                }
+            ]
+            return resp_text, trace, True
+
+        return self.step(user_text)
