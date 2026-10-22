@@ -48,7 +48,7 @@ To prevent common LLM pitfalls (infinite retrieval loops, hallucinated booking I
 
 ## 2. The Production Challenge: Conversational Uncertainty & ASR Noise
 
-In deployment—especially in **spoken dialogue environments** paired with Automatic Speech Recognition (ASR) engines like Whisper or Vosk—real-world input is rarely clean or canonical:
+In deployment, especially in **spoken dialogue environments** paired with Automatic Speech Recognition (ASR) engines like Whisper or Vosk, real-world input is rarely clean or canonical:
 - **Acoustic Transcription Noise:** Phonetic misspellings and surface variants (e.g., *"lo priced"* instead of *"cheap"*, *"japnese"* instead of *"japanese"*, *"downtown"* instead of *"centre"*).
 - **Out-of-Vocabulary (OOV) Requests:** Users requesting items outside the domain ontology (e.g., *"mexican food"*).
 - **Ambiguous or Incomplete Specifications:** Users omitting critical booking constraints (date, time, party size).
@@ -262,4 +262,4 @@ python scripts/run_agent_cli.py
 
 ## License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License: see the [LICENSE](LICENSE) file for details.
